@@ -1,0 +1,25 @@
+﻿# Node/TS
+node_modules/
+dist/
+coverage/
+*.log
+npm-debug.log*
+pnpm-lock.yaml
+yarn.lock
+
+# 環境変数・秘密
+.env
+.env.*
+!.env.example
+
+# DB/ランタイムファイル
+bot.db
+bot.db-*
+*.sqlite
+*.sqlite-journal
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
