@@ -73,7 +73,8 @@ client.on('guildCreate', async () => {
 client.on('interactionCreate', async (i: Interaction) => {
   try {
     if (i.isChatInputCommand()) {
-      getOrCreateUser.run(i.user.id, i.user.username);
+      const display = (i.user as any).globalName ?? i.user.username ?? `${i.user.id}`;
+      getOrCreateUser.run(i.user.id, display);
       const name = i.commandName as keyof typeof modules;
       const mod = modules[name];
       if (!mod) return;

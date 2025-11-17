@@ -143,8 +143,8 @@ export function hasD100(atoms: RollAtom[]) {
 }
 
 export function judgeD100(target: number, roll: number): Judge {
-  // roll は整数、target は小数OK。通常の <= 比較でOK（例: 44.5 → 実質 44 以下）
-  if (roll <= target) return roll >= 1 && roll <= 5 ? 'クリティカル' : '成功';
+  const t = Math.floor(target);
+  if (roll <= t) return roll >= 1 && roll <= 5 ? 'クリティカル' : '成功';
   return roll >= 96 && roll <= 100 ? 'ファンブル' : '失敗';
 }
 export function judgeGeneric(target: number, total: number): Judge {

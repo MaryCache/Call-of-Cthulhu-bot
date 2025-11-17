@@ -34,8 +34,9 @@ export async function handle(i: ChatInputCommandInteraction) {
 
   const lines = rows.map((r) => `・${r.name} (id:${r.id})`).join('\n');
 
-  // ボタンは最大5件（Discordのコンポーネント行制限を踏まえつつ簡易実装）
-  const maxButtons = 5;
+    // TODO: 将来はページング（Prev/Next）を実装する。customIdに page=<n> を含める。
+    // ボタンは最大10件（暫定拡張。UI崩れ防止のため10まで）
+    const maxButtons = 10;
   const slice = rows.slice(0, maxButtons);
 
   const components = slice.map((r) =>

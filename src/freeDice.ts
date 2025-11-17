@@ -103,6 +103,19 @@ function longestMatchingKey(input: string, keys: string[]): string | null {
   for (const k of sorted) if (input.startsWith(k)) return k;
   return null;
 }
+  function resolveSkillKey(input: string, index: Map<string, any>): string | null {
+    // 完全一致 > 括弧なし > 最長一致
+    if (index.has(input)) return input;
+    const noParenKey = [...index.keys()].find(
+      (k) => k.replace(/（.+?）$/, '') === input && /（.+?）$/.test(k),
+    );
+    if (noParenKey) return noParenKey;
+    const sorted = [...index.keys()].sort((a, b) => b.length - a.length);
+    for (const k of sorted) if (input.startsWith(k)) return k;
+    return null;
+  }
+
+  const NOTIFY_NO_SELECTION = false;
 
 // ===== メッセージでの自由ダイス（常時有効） =====
 export function installFreeDiceHandler(client: Client) {
@@ -125,7 +138,10 @@ export function installFreeDiceHandler(client: Client) {
         const tail = (mSan[1] || '');
         if (!isArithmeticTail(tail)) return; // 会話っぽい → 反応しない
 
-        if (!sel) return; // 選択キャラなしは静かに無視
+          if (!sel) {
+            if (NOTIFY_NO_SELECTION) await message.reply('まず /characters でキャラを選択してね');
+            return;
+          }
         const row = getCharById.get(sel.char_id) as any;
         if (!row) return;
 
@@ -192,11 +208,20 @@ export function installFreeDiceHandler(client: Client) {
           await message.reply(`${label}\n${block}`);
           return;
         }
+      } else {
+        // 選択キャラが無いと能力インデックスが作れない＝能力ロール不能
+        // 入力が能力っぽい時だけ通知を出す（誤検出の恐れがある技能は静かに無視）
+        const abilityHeads = ['str','con','pow','dex','app','siz','int','edu','ide','幸運','知識'];
+        const looksAbility = abilityHeads.some((h) => text.toLowerCase().startsWith(h));
+        if (looksAbility && NOTIFY_NO_SELECTION) {
+          await message.reply('キャラが未選択だよ（/characters で選んでね）');
+          return;
+        }
       }
 
       // ---- 2) 技能名 [+/-/*//(...)] で 1d100（後ろが数式でないなら無視）----
       if (skillIdx) {
-        const key = longestMatchingKey(text, [...skillIdx.keys()]);
+          const key = resolveSkillKey(text, skillIdx);
         if (key && skillIdx.has(key)) {
           const tail = text.slice(key.length);
           if (!isArithmeticTail(tail)) return; // 会話っぽい → 反応しない

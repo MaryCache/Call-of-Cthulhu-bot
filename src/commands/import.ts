@@ -57,6 +57,8 @@ export async function handle(i: ChatInputCommandInteraction) {
     const p = parseIaChar(text);
 
     const tx = db.transaction(() => {
+        // import時: 最大値未設定でも破綻しないよう、初期は現在値をMaxへコピーする運用
+        // （ビルドによって max 欄が省略されることがあるための保険）
       upsertCharacterStmt.run(
         userId,
         p.name,
