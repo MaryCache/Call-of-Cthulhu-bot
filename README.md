@@ -1,73 +1,98 @@
-クトゥルフ神話TRPG向け Discord Bot。  
-ダイス式、技能・能力ロール、いあきゃら取り込み、PM2 常駐運用 対応。
+# Call-of-Cthulhu Bot (Discord)
 
-## 開発
-```bash
-npm i
-npm run start   # または node -r ts-node/register/transpile-only -r dotenv/config src/index.ts
-````
+クトゥルフ神話TRPG向けの Discord ボットです。
+- 技能/能力ロール (1d100 判定)
+- フリーダイス（メッセージから数式を自動判定）
+- いあきゃら形式のキャラクター取り込み
+- SQLite によるローカル保存 / PM2 での常駐運用を想定
 
-## .env
+---
+
+## Requirements
+
+- Node.js 18+ を推奨
+- npm
+- (開発) TypeScript
+
+依存ライブラリは `package.json` を参照してください（例: `better-sqlite3`, `discord.js` 等）。
+
+## Quick Start (開発)
+
+1. リポジトリをクローン
+
+```powershell
+git clone https://github.com/MaryCache/Call-of-Cthulhu-bot.git
+cd Call-of-Cthulhu-bot
+```
+
+2. 依存をインストール
+
+```powershell
+npm install
+```
+
+3. `.env` を作成して Discord トークンを設定
 
 ```
 DISCORD_TOKEN=YOUR_TOKEN
 ```
 
-## 常駐運用（Windows / PM2）
+4. 開発起動
 
+```powershell
+npm run start
+# もしくは ts-node を直接使う場合:
+# node -r ts-node/register/transpile-only -r dotenv/config src/index.ts
 ```
+
+## Discord Bot の設定
+
+1. Discord Developer Portal で Bot を作成
+2. OAuth2 のスコープに `applications.commands` と `bot` を追加
+3. Bot の権限は最小限を与えてください（メッセージ送信、インタラクションなど）
+4. `Message Content Intent` を利用する場合は Developer Portal で有効化し、コード側でも `GatewayIntentBits.MessageContent` を渡してください（既に実装済み）
+
+例: 招待 URL に必要なスコープと権限を設定して招待します。
+
+## Production (PM2)
+
+```powershell
 pm2 start "D:/プログラミング/ptrpgbot/ecosystem.config.cjs"
 pm2 ls
 pm2 logs ptrpgbot
 ```
 
-# 【クトゥルフ神話trpg】bot かんたん使い方
-## 1.キャラクター登録
-```
-/import
-いあきゃらの出力を読みこみ、キャラクターとして登録する機能です。
-機能としてはコピペにも対応していますが、文章が長すぎて貼れない欠陥仕様。
-/fileを選択し、いあきゃらの「キャラ出力」→「ファイルに出力」から.txtファイルをダウンロードし、貼り付けてください。
-```
-```
-/characters
-自分のキャラ一覧を表示します（自分にだけ見えます）。ボタンで選択/削除可能です。
-```
-```
-/show
-選択中キャラのシートを公開メッセージで表示します。
-以後、数値が変わると同じメッセージをリアルタイムで編集更新します。
-skills→全て表示 / skills→初期値は省略　の2パターンありますが、後者を推奨します。(前者はメッセージが長くて扱いづらいです)
-```
-## 2. ダイスの振り方
-```
-1.フリーダイス（キャラ不要）
-xdy　の入力に反応して値を返します。
-目標つき：1d100：x など。
-() + - * / で四則演算が可能です。除算は小数切り捨て。
-```
-```
-技能/能力で判定（選択キャラが必要　/charactersにて選択。）
-技能名を入力すると、選択しているキャラの技能値を目標値として参照し、成否判定を返します。
-目星+20　などと入力することで、四則演算にも対応しています。
-```
-## 3. 値の更新/成長
-```
-/add　でHP/MP/SANの現在値を加算/減算できます。
-/set　でHP/MP/SANの現在値を変更できます。
-```
-```
-/ability addで能力値を加算/減算できます。
-/ability setで能力値を再設定できます。
-```
-```
-/skill addで技能値を加算/減算できます。
-/skill setで技能値を再設定できます。
-```
-```
-/growth
-ポイント割り振りを含めた、技能の成長度をすべて出力します。
-```
-```
-上記のステータス変更について、/showで出力しているステータス表示メッセージは自動で更新されます。
-```
+※ Windows 環境ではパスを適宜書き換えてください。
+
+## データベース
+
+ローカルに SQLite を使用します。実行時にワークスペース内に DB ファイルが作成されます（`better-sqlite3` を使用）。特別な初期化手順は不要です。
+
+## 主なコマンド / 使い方
+
+- `/import` — いあきゃら出力を取り込みます（長文の貼り付けが難しい場合はファイル添付を推奨）
+- `/characters` — 自分のキャラ一覧を表示（ボタンで選択/削除）
+- `/show` — 選択中キャラのシートを表示（自動で表示メッセージを更新）
+
+フリーダイス（チャットで直接）:
+
+- 例: `1d100:40`（目標付き）
+- 例: `2d6+3`（四則演算対応）
+
+技能/能力で判定（選択キャラが必要）:
+
+- チャットに技能名や能力名を入力すると、自動でそのキャラの値を目標に判定します（例: `目星+20`）。
+
+## トラブルシューティング
+
+- `DISCORD_TOKEN` が設定されていない: 起動時にエラーになります。`.env` を確認してください。
+- Bot が反応しない: Bot がサーバーに招待されているか、必要な権限や Intent が有効かを確認してください。
+- `/import` で長文が貼れない: ファイル添付を使用してください。
+
+## 開発・貢献
+
+簡単なバグ修正や機能追加は Welcome です。PR を投げてください。
+
+## ライセンス
+
+プロジェクトに適切なライセンスを追加してください（例: MIT）。
